@@ -1,6 +1,7 @@
 import os
 from datetime import date, timedelta
 
+import altair as alt
 import httpx
 import pandas as pd
 import streamlit as st
@@ -48,6 +49,44 @@ def fetch_daily_bars(ticker: str, bars_to_show: int, api_key: str) -> pd.DataFra
         ]
     )
     return frame.tail(bars_to_show).reset_index(drop=True)
+
+
+def build_close_price_chart(prices: pd.DataFrame) -> alt.Chart:
+    min_close = float(prices["close"].min())
+    max_close = float(prices["close"].max())
+    price_span = max_close - min_close
+
+    # Keep the chart focused on the observed range while still leaving
+    # enough headroom so small moves do not look cramped.
+    padding = max(price_span * 0.2, max_close * 0.01, 1.0)
+    y_min = min_close - padding
+    y_max = max_close + padding
+
+    if y_min == y_max:
+        y_min -= 1.0
+        y_max += 1.0
+
+    return (
+        alt.Chart(prices)
+        .mark_line(point=True, strokeWidth=3)
+        .encode(
+            x=alt.X("date:T", title="Date"),
+            y=alt.Y(
+                "close:Q",
+                title="Close",
+                scale=alt.Scale(domain=[y_min, y_max], zero=False),
+            ),
+            tooltip=[
+                alt.Tooltip("date:T", title="Date"),
+                alt.Tooltip("close:Q", title="Close", format=",.2f"),
+                alt.Tooltip("open:Q", title="Open", format=",.2f"),
+                alt.Tooltip("high:Q", title="High", format=",.2f"),
+                alt.Tooltip("low:Q", title="Low", format=",.2f"),
+            ],
+        )
+        .properties(height=320)
+        .interactive()
+    )
 
 
 load_dotenv()
@@ -108,7 +147,7 @@ if submitted:
     metric_col_3.metric("Rows shown", str(len(prices)))
 
     st.subheader(f"{ticker} closing prices")
-    st.line_chart(prices.set_index("date")["close"], height=320)
+    st.altair_chart(build_close_price_chart(prices), use_container_width=True)
 
     st.subheader("Recent daily bars")
     st.dataframe(
