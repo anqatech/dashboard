@@ -63,7 +63,8 @@ def build_screener_layout(
                 defaultColDef={
                     "resizable": True,
                     "sortable": True,
-                    "filter": True,
+                    "filter": False,
+                    "suppressHeaderFilterButton": True,
                     "minWidth": 120,
                     "suppressHeaderMenuButton": True,
                 },

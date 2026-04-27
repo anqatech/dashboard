@@ -1,22 +1,20 @@
 # Stock Market Dashboard
 
-Minimal first slice for a Python-first stock dashboard using Massive.com data.
+Python-first stock market dashboard built around local market datasets and a Dash frontend.
 
-## What this does
+## Current Status
 
-- accepts one stock ticker
-- fetches recent daily aggregate bars from Massive.com
-- plots closing prices in a simple Streamlit chart
-- shows the underlying rows in a table
+- `dash_app/` is the frontend
+- `dashboard_core/` holds shared non-UI logic
 
-## Why this is small on purpose
+## Project Structure
 
-This repo starts with one app file and a few setup files so the flow stays easy to review:
-
-- Python UI
-- one external API call
-- simple data shaping
-- simple chart
+```text
+dashboard/
+├── dash_app/          # primary Dash frontend
+├── dashboard_core/    # shared loaders, analytics, formatters, paths
+└── requirements.txt
+```
 
 ## Setup
 
@@ -33,21 +31,27 @@ conda activate stock-dashboard
 pip install -r requirements.txt
 ```
 
-3. Add your Massive API key to your existing `.env` file:
+3. If you are experimenting with Massive.com API calls in notebooks or supporting scripts, keep your API key in `.env`:
 
 ```bash
 MASSIVE_API_KEY=your_api_key_here
 ```
 
-## Run
+## Run The Primary App
+
+Run the Dash app:
 
 ```bash
-streamlit run app.py
+python -m dash_app
 ```
 
-## Next likely steps
+Open:
 
-- add a company summary/header
-- compare multiple tickers
-- add intraday charts
-- introduce a small service layer once the app grows
+```text
+http://127.0.0.1:8050
+```
+
+## Notes
+
+- The app frontend is Dash.
+- Most data, formatting, and analytics logic is shared through `dashboard_core`.

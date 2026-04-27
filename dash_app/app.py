@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from dash import Dash, Input, Output, State, callback, dcc, html, page_container, page_registry
+from dash import ALL, Dash, Input, Output, State, callback, dcc, html, page_container, page_registry
 
 
 APP_DIR = Path(__file__).parent
@@ -19,7 +19,12 @@ server = app.server
 def build_navigation() -> html.Div:
     pages = sorted(page_registry.values(), key=lambda page: page.get("order", 999))
     links = [
-        dcc.Link(page["name"], href=page["path"], className="nav-link")
+        dcc.Link(
+            page["name"],
+            href=page["path"],
+            id={"type": "nav-link", "path": page["path"]},
+            className="nav-link",
+        )
         for page in pages
     ]
     return html.Nav(links, className="side-nav")
@@ -48,6 +53,7 @@ def build_sidebar() -> html.Aside:
 
 app.layout = html.Div(
     [
+        dcc.Location(id="app-location"),
         dcc.Store(id="sidebar-collapsed", storage_type="session", data=False),
         html.Div(
             [
@@ -84,6 +90,22 @@ def sync_sidebar_state(is_collapsed: bool) -> tuple[str, str, str]:
     if is_collapsed:
         return "app-shell is-collapsed", "→", "Expand sidebar"
     return "app-shell", "←", "Collapse sidebar"
+
+
+@callback(
+    Output({"type": "nav-link", "path": ALL}, "className"),
+    Input("app-location", "pathname"),
+)
+def sync_active_nav(pathname: str | None) -> list[str]:
+    pages = sorted(page_registry.values(), key=lambda page: page.get("order", 999))
+    current_path = pathname or "/"
+    classes: list[str] = []
+    for page in pages:
+        class_name = "nav-link"
+        if page["path"] == current_path:
+            class_name += " is-active"
+        classes.append(class_name)
+    return classes
 
 
 if __name__ == "__main__":

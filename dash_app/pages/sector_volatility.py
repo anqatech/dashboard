@@ -55,12 +55,12 @@ def load_sector_volatility(_):
         [
             {"field": "gics_sector", "headerName": "GICS sector", "minWidth": 220, "pinned": "left"},
             {"field": "stock_count", "headerName": "Stocks", "minWidth": 100},
-            {"field": "total_market_cap_display", "headerName": "Total market cap", "minWidth": 150},
-            {"field": "weight_display", "headerName": "Weight", "minWidth": 110},
-            {"field": "vol_1m_display", "headerName": "vol_1m", "minWidth": 110},
-            {"field": "vol_3m_display", "headerName": "vol_3m", "minWidth": 110},
-            {"field": "vol_6m_display", "headerName": "vol_6m", "minWidth": 110},
-            {"field": "vol_1y_display", "headerName": "vol_1y", "minWidth": 110},
+            {"field": "total_market_cap_display", "headerName": "Total market cap", "minWidth": 150, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "weight_display", "headerName": "Weight", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_1m_display", "headerName": "vol_1m", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_3m_display", "headerName": "vol_3m", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_6m_display", "headerName": "vol_6m", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_1y_display", "headerName": "vol_1y", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
         ]
     )
     return (

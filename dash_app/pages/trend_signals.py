@@ -70,15 +70,15 @@ def update_grid(selected_sector: str, selected_sub_industry: str):
         [
             {"field": "ticker", "headerName": "Ticker", "pinned": "left", "minWidth": 110},
             {"field": "company_name", "headerName": "Company", "minWidth": 220},
-            {"field": "market_cap_display", "headerName": "Market cap", "minWidth": 140},
-            {"field": "latest_close", "headerName": "Price", "minWidth": 110},
-            {"field": "trend_signal_display", "headerName": "trend_signal", "minWidth": 120},
-            {"field": "trend_raw_display", "headerName": "trend_raw", "minWidth": 110},
-            {"field": "ma_confirm_display", "headerName": "ma_confirm", "minWidth": 120},
-            {"field": "tsmom_63_display", "headerName": "tsmom_63", "minWidth": 110},
-            {"field": "tsmom_126_display", "headerName": "tsmom_126", "minWidth": 115},
-            {"field": "tsmom_252_display", "headerName": "tsmom_252", "minWidth": 115},
-            {"field": "relmom_12_1_display", "headerName": "relmom_12_1", "minWidth": 125},
+            {"field": "market_cap_display", "headerName": "Market cap", "minWidth": 140, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "latest_close", "headerName": "Price", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "trend_signal_display", "headerName": "trend_signal", "minWidth": 120, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "trend_raw_display", "headerName": "trend_raw", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "ma_confirm_display", "headerName": "ma_confirm", "minWidth": 120, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "tsmom_63_display", "headerName": "tsmom_63", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "tsmom_126_display", "headerName": "tsmom_126", "minWidth": 115, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "tsmom_252_display", "headerName": "tsmom_252", "minWidth": 115, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "relmom_12_1_display", "headerName": "relmom_12_1", "minWidth": 125, "comparator": {"function": "numericDisplayComparator"}},
         ]
     )
     return row_data, column_defs

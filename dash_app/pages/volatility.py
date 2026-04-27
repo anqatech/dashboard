@@ -68,12 +68,12 @@ def update_grid(selected_sector: str, selected_sub_industry: str):
         [
             {"field": "ticker", "headerName": "Ticker", "pinned": "left", "minWidth": 110},
             {"field": "company_name", "headerName": "Company", "minWidth": 220},
-            {"field": "market_cap_display", "headerName": "Market cap", "minWidth": 140},
-            {"field": "latest_close", "headerName": "Price", "minWidth": 110},
-            {"field": "vol_1m_display", "headerName": "vol_1m", "minWidth": 100},
-            {"field": "vol_3m_display", "headerName": "vol_3m", "minWidth": 100},
-            {"field": "vol_6m_display", "headerName": "vol_6m", "minWidth": 100},
-            {"field": "vol_1y_display", "headerName": "vol_1y", "minWidth": 100},
+            {"field": "market_cap_display", "headerName": "Market cap", "minWidth": 140, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "latest_close", "headerName": "Price", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_1m_display", "headerName": "vol_1m", "minWidth": 100, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_3m_display", "headerName": "vol_3m", "minWidth": 100, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_6m_display", "headerName": "vol_6m", "minWidth": 100, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "vol_1y_display", "headerName": "vol_1y", "minWidth": 100, "comparator": {"function": "numericDisplayComparator"}},
         ]
     )
     return row_data, column_defs

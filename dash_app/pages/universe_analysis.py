@@ -35,7 +35,8 @@ def build_table(table_id: str, min_height: str = "300px") -> dag.AgGrid:
         defaultColDef={
             "resizable": True,
             "sortable": True,
-            "filter": True,
+            "filter": False,
+            "suppressHeaderFilterButton": True,
             "minWidth": 120,
             "suppressHeaderMenuButton": True,
         },
@@ -212,8 +213,8 @@ def update_universe_page(_, selected_sector: str, selected_sub_industry: str):
             {"field": "gics_sector", "headerName": "GICS sector", "minWidth": 220, "pinned": "left"},
             {"field": "ticker_count", "headerName": "Stocks", "minWidth": 100},
             {"field": "sub_industry_count", "headerName": "Sub-industries", "minWidth": 130},
-            {"field": "total_market_cap_display", "headerName": "Total market cap", "minWidth": 150},
-            {"field": "market_cap_weight_display", "headerName": "Ratio", "minWidth": 100},
+            {"field": "total_market_cap_display", "headerName": "Total market cap", "minWidth": 150, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "market_cap_weight_display", "headerName": "Ratio", "minWidth": 100, "comparator": {"function": "numericDisplayComparator"}},
         ]
     )
 
@@ -233,7 +234,7 @@ def update_universe_page(_, selected_sector: str, selected_sub_industry: str):
         [
             {"field": "ticker", "headerName": "Ticker", "minWidth": 110, "pinned": "left"},
             {"field": "company_name", "headerName": "Company", "minWidth": 240},
-            {"field": "market_cap_display", "headerName": "Market cap", "minWidth": 140},
+            {"field": "market_cap_display", "headerName": "Market cap", "minWidth": 140, "comparator": {"function": "numericDisplayComparator"}},
             {"field": "start", "headerName": "Dataset start", "minWidth": 130},
             {"field": "end", "headerName": "Dataset end", "minWidth": 130},
         ]

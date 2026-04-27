@@ -57,14 +57,14 @@ def load_sector_performance(_):
         [
             {"field": "gics_sector", "headerName": "GICS sector", "minWidth": 220, "pinned": "left"},
             {"field": "stock_count", "headerName": "Stocks", "minWidth": 100},
-            {"field": "total_market_cap_display", "headerName": "Total market cap", "minWidth": 150},
-            {"field": "weight_display", "headerName": "Weight", "minWidth": 110},
-            {"field": "1D", "headerName": "1D", "minWidth": 95},
-            {"field": "1W", "headerName": "1W", "minWidth": 95},
-            {"field": "1M", "headerName": "1M", "minWidth": 95},
-            {"field": "YTD", "headerName": "YTD", "minWidth": 95},
-            {"field": "1Y", "headerName": "1Y", "minWidth": 95},
-            {"field": "3Y", "headerName": "3Y", "minWidth": 95},
+            {"field": "total_market_cap_display", "headerName": "Total market cap", "minWidth": 150, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "weight_display", "headerName": "Weight", "minWidth": 110, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "1D", "headerName": "1D", "minWidth": 95, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "1W", "headerName": "1W", "minWidth": 95, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "1M", "headerName": "1M", "minWidth": 95, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "YTD", "headerName": "YTD", "minWidth": 95, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "1Y", "headerName": "1Y", "minWidth": 95, "comparator": {"function": "numericDisplayComparator"}},
+            {"field": "3Y", "headerName": "3Y", "minWidth": 95, "comparator": {"function": "numericDisplayComparator"}},
         ]
     )
     return (
