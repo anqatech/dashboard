@@ -20,6 +20,7 @@ from dashboard_core.formatters import (
     format_market_cap_billions,
     format_percent,
 )
+from dash_app.grid_theme import GRID_THEME
 from dashboard_core.paths import DAILY_BARS_DIR, PERFORMANCE_FRAME_PATH, UNIVERSE_PATH, VOLATILITY_FRAME_PATH
 
 
@@ -319,16 +320,20 @@ def layout() -> html.Div:
                 id="graphs-daily-bars",
                 columnDefs=[],
                 rowData=[],
+                className="table-grid",
                 defaultColDef={
                     "resizable": True,
                     "sortable": True,
                     "filter": True,
                     "minWidth": 120,
+                    "suppressHeaderMenuButton": True,
                 },
                 columnSize="sizeToFit",
                 dashGridOptions={
+                    "theme": GRID_THEME,
                     "pagination": True,
                     "paginationPageSize": 20,
+                    "paginationPageSizeSelector": False,
                     "domLayout": "autoHeight",
                 },
                 style={"width": "100%"},

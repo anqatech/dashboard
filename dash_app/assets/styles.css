@@ -121,6 +121,55 @@ body {
   max-width: none;
 }
 
+.table-page-header {
+  margin-bottom: 18px;
+}
+
+.table-page-title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.table-page-description {
+  color: #a6b0c3;
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: 780px;
+}
+
+.table-filters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.table-grid {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.table-grid .ag-header-cell-label {
+  font-weight: 600;
+}
+
+.table-grid .ag-paging-panel {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: #d7deea;
+}
+
+.table-grid .ag-paging-button,
+.table-grid .ag-button {
+  color: #d7deea;
+}
+
+.table-grid .ag-icon {
+  color: #aeb9cd;
+}
+
 .controls-grid {
   display: grid;
   gap: 16px;
@@ -168,6 +217,100 @@ body {
   position: relative;
   z-index: 1;
   width: 100%;
+}
+
+.dash-dropdown .Select-menu-outer,
+.dash-dropdown .Select-menu {
+  background: #141d2c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f4f4f4;
+}
+
+.dash-dropdown {
+  background: #ffffff;
+  color: #1a2233;
+}
+
+.dash-dropdown-trigger {
+  background: #ffffff;
+  color: #1a2233;
+}
+
+.dash-dropdown-value,
+.dash-dropdown-value-item,
+.dash-dropdown-value-item > *,
+.dash-dropdown-value-count {
+  color: #1a2233 !important;
+  opacity: 1 !important;
+}
+
+.dash-dropdown-placeholder {
+  color: #6f7d95 !important;
+  opacity: 1 !important;
+}
+
+.dash-dropdown-trigger-icon,
+.dash-dropdown-search-icon,
+.dash-dropdown-clear {
+  color: #40506b;
+  fill: #40506b;
+}
+
+.dash-dropdown-content {
+  background: #141d2c;
+  color: #f4f4f4;
+}
+
+.dash-dropdown-option {
+  color: #f4f4f4;
+}
+
+.dash-dropdown .Select-control,
+.dash-dropdown .Select__control {
+  background: #ffffff;
+  color: #1a2233;
+}
+
+.dash-dropdown .Select-control .Select-value,
+.dash-dropdown .Select-control .Select-placeholder,
+.dash-dropdown .Select-control .Select-input,
+.dash-dropdown .Select-control .Select-input > input {
+  opacity: 1 !important;
+}
+
+.dash-dropdown .Select-placeholder,
+.dash-dropdown .Select--single > .Select-control .Select-value,
+.dash-dropdown .Select--single > .Select-control .Select-value .Select-value-label,
+.dash-dropdown .Select-value-label,
+.dash-dropdown .Select-input > input,
+.dash-dropdown .has-value.Select--single > .Select-control .Select-value,
+.dash-dropdown .has-value.Select--single > .Select-control .Select-value .Select-value-label {
+  color: #1a2233 !important;
+}
+
+.dash-dropdown .Select-placeholder {
+  color: #6f7d95 !important;
+}
+
+.dash-dropdown .Select-arrow {
+  border-top-color: #40506b;
+}
+
+.dash-dropdown .Select-option,
+.dash-dropdown .VirtualizedSelectOption {
+  background: #141d2c;
+  color: #f4f4f4;
+}
+
+.dash-dropdown .Select-option.is-focused,
+.dash-dropdown .VirtualizedSelectFocusedOption {
+  background: #243149;
+  color: #ffffff;
+}
+
+.dash-dropdown .Select-option.is-selected {
+  background: #2d3a55;
+  color: #ffffff;
 }
 
 .text-input {
@@ -307,6 +450,7 @@ body {
 
   .controls-grid-top,
   .controls-grid-bottom,
+  .table-filters-grid,
   .metrics-grid {
     grid-template-columns: 1fr;
   }
