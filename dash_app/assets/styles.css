@@ -139,6 +139,32 @@ body {
   max-width: 780px;
 }
 
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 6px 0 18px;
+}
+
+.summary-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.summary-label {
+  color: #cfd7e6;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
 .table-filters-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -451,6 +477,7 @@ body {
   .controls-grid-top,
   .controls-grid-bottom,
   .table-filters-grid,
+  .summary-grid,
   .metrics-grid {
     grid-template-columns: 1fr;
   }
