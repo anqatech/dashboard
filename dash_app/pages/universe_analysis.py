@@ -62,16 +62,6 @@ def layout() -> html.Div:
 
     return html.Div(
         [
-            html.Div(
-                [
-                    html.Div("Universe Analysis", className="table-page-title"),
-                    html.Div(
-                        "Explore the enriched ticker universe by GICS sector, sub-industry, and stock list.",
-                        className="table-page-description",
-                    ),
-                ],
-                className="table-page-header",
-            ),
             html.Div(id=f"{PAGE_KEY}-load-trigger", style={"display": "none"}),
             html.Div(id=f"{PAGE_KEY}-error", className="inline-error"),
             html.Div(

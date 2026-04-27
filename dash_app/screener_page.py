@@ -22,13 +22,6 @@ def build_screener_layout(
         [
             html.Div(
                 [
-                    html.Div(title, className="table-page-title"),
-                    html.Div(description, className="table-page-description"),
-                ],
-                className="table-page-header",
-            ),
-            html.Div(
-                [
                     html.Div(
                         [
                             html.Label("Sector", className="control-label"),

@@ -11,13 +11,6 @@ def build_sector_layout(
 ) -> html.Div:
     return html.Div(
         [
-            html.Div(
-                [
-                    html.Div(title, className="table-page-title"),
-                    html.Div(description, className="table-page-description"),
-                ],
-                className="table-page-header",
-            ),
             html.Div(id=f"{page_key}-load-trigger", style={"display": "none"}),
             html.Div(id=f"{page_key}-error", className="inline-error"),
             html.Div(

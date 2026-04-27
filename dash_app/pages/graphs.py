@@ -1,7 +1,6 @@
 from functools import lru_cache
 
 import dash
-import dash_ag_grid as dag
 from dash import Input, Output, State, callback, ctx, dcc, html
 import pandas as pd
 import plotly.graph_objects as go
@@ -20,7 +19,6 @@ from dashboard_core.formatters import (
     format_market_cap_billions,
     format_percent,
 )
-from dash_app.grid_theme import GRID_THEME
 from dashboard_core.paths import DAILY_BARS_DIR, PERFORMANCE_FRAME_PATH, UNIVERSE_PATH, VOLATILITY_FRAME_PATH
 
 
@@ -159,34 +157,6 @@ def build_candlestick_figure(prices: pd.DataFrame, ticker: str) -> go.Figure:
     return figure
 
 
-def build_daily_bars_table(prices: pd.DataFrame) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
-    table_frame = prices.copy()
-    table_frame["Date"] = table_frame["date"].dt.strftime("%Y-%m-%d")
-    table_frame["Open"] = table_frame["open"].map(lambda value: f"${float(value):,.2f}")
-    table_frame["High"] = table_frame["high"].map(lambda value: f"${float(value):,.2f}")
-    table_frame["Low"] = table_frame["low"].map(lambda value: f"${float(value):,.2f}")
-    table_frame["Close"] = table_frame["close"].map(lambda value: f"${float(value):,.2f}")
-    table_frame["Volume"] = table_frame["volume"].map(
-        lambda value: "" if pd.isna(value) else f"{int(value):,}"
-    )
-
-    selected_columns = ["Date", "Open", "High", "Low", "Close", "Volume"]
-    if "vwap" in table_frame.columns:
-        table_frame["VWAP"] = table_frame["vwap"].map(
-            lambda value: "" if pd.isna(value) else f"${float(value):,.2f}"
-        )
-        selected_columns.append("VWAP")
-    if "transactions" in table_frame.columns:
-        table_frame["Transactions"] = table_frame["transactions"].map(
-            lambda value: "" if pd.isna(value) else f"{int(value):,}"
-        )
-        selected_columns.append("Transactions")
-
-    display_frame = table_frame.loc[:, selected_columns]
-    columns = [{"field": column, "headerName": column, "sortable": True, "filter": True} for column in selected_columns]
-    return display_frame.to_dict("records"), columns
-
-
 def ytd_delta_class(value: float) -> str:
     if pd.isna(value):
         return "metric-delta metric-delta-neutral"
@@ -315,29 +285,6 @@ def layout() -> html.Div:
             html.Div(id="graphs-classification", className="classification-copy"),
             html.H2(id="graphs-chart-title", className="chart-title"),
             dcc.Graph(id="graphs-chart", figure=build_empty_figure("Select a ticker to view the chart.")),
-            html.H3("Daily bars", className="section-heading"),
-            dag.AgGrid(
-                id="graphs-daily-bars",
-                columnDefs=[],
-                rowData=[],
-                className="table-grid",
-                defaultColDef={
-                    "resizable": True,
-                    "sortable": True,
-                    "filter": True,
-                    "minWidth": 120,
-                    "suppressHeaderMenuButton": True,
-                },
-                columnSize="sizeToFit",
-                dashGridOptions={
-                    "theme": GRID_THEME,
-                    "pagination": True,
-                    "paginationPageSize": 20,
-                    "paginationPageSizeSelector": False,
-                    "domLayout": "autoHeight",
-                },
-                style={"width": "100%"},
-            ),
         ],
         className="content-stack",
     )
@@ -414,8 +361,6 @@ def sync_graph_filters(
     Output("metric-market-cap", "children"),
     Output("graphs-chart-title", "children"),
     Output("graphs-chart", "figure"),
-    Output("graphs-daily-bars", "rowData"),
-    Output("graphs-daily-bars", "columnDefs"),
     Input("graphs-sector", "value"),
     Input("graphs-sub-industry", "value"),
     Input("graphs-ticker", "value"),
@@ -443,8 +388,6 @@ def update_graph_view(
             "",
             "No ticker selected",
             empty_figure,
-            [],
-            [],
         )
 
     company_lookup = get_universe_lookup()
@@ -468,8 +411,6 @@ def update_graph_view(
             "",
             message,
             empty_figure,
-            [],
-            [],
         )
 
     filtered_prices = filter_prices_by_window(prices, selected_window)
@@ -488,8 +429,6 @@ def update_graph_view(
             "",
             f"{selected_ticker} closing prices",
             empty_figure,
-            [],
-            [],
         )
 
     performance_frame = get_performance_frame()
@@ -513,7 +452,6 @@ def update_graph_view(
         chart_title = f"{chart_title} - {company_name}"
 
     figure = build_candlestick_figure(filtered_prices, selected_ticker)
-    table_data, table_columns = build_daily_bars_table(filtered_prices)
     ytd_display = format_log_return_as_percent(ytd_change)
 
     return (
@@ -529,6 +467,4 @@ def update_graph_view(
         format_market_cap_billions(market_cap),
         chart_title,
         figure,
-        table_data,
-        table_columns,
     )
