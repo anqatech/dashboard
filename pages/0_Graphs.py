@@ -1,85 +1,48 @@
-from pathlib import Path
-import math
-
 import altair as alt
 import pandas as pd
 import streamlit as st
 
+from dashboard_core.analytics import TIME_WINDOW_OPTIONS, filter_prices_by_window
+from dashboard_core.data import (
+    build_universe_lookup,
+    filter_universe,
+    load_daily_bars,
+    load_performance_data,
+    load_universe_data,
+    load_volatility_data,
+)
+from dashboard_core.formatters import (
+    format_log_return_as_percent,
+    format_market_cap_billions,
+    format_percent,
+)
+from dashboard_core.paths import DAILY_BARS_DIR, PERFORMANCE_FRAME_PATH, UNIVERSE_PATH, VOLATILITY_FRAME_PATH
 from ui_state import render_persistent_selectbox
 
-
-UNIVERSE_PATH = Path("/Users/jalalelhazzat/Documents/Codex-Projects/jnbooks/data/sp500/tickers_enriched.csv")
-DAILY_BARS_DIR = Path("/Users/jalalelhazzat/Documents/Codex-Projects/jnbooks/data/daily-bars")
-PERFORMANCE_FRAME_PATH = Path("/Users/jalalelhazzat/Documents/Codex-Projects/jnbooks/data/frames/daily-bars-performance-metrics.parquet")
-VOLATILITY_FRAME_PATH = Path("/Users/jalalelhazzat/Documents/Codex-Projects/jnbooks/data/frames/daily-bars-realized-volatility.parquet")
-REQUIRED_COLUMNS = {"ticker", "company_name", "gics_sector", "gics_sub_industry"}
-PERFORMANCE_REQUIRED_COLUMNS = {"ticker", "market_cap", "log_return_ytd"}
-VOLATILITY_REQUIRED_COLUMNS = {"ticker", "realized_vol_6m"}
-TIME_WINDOW_OPTIONS = {
-    "3M": 63,
-    "6M": 126,
-    "1Y": 252,
-    "3Y": 756,
-    "5Y": 1260,
-    "Max": None,
-}
+@st.cache_data
+def get_universe():
+    return load_universe_data(UNIVERSE_PATH)
 
 
 @st.cache_data
-def load_universe_data(csv_path: str) -> pd.DataFrame:
-    frame = pd.read_csv(csv_path)
-    missing_columns = REQUIRED_COLUMNS.difference(frame.columns)
-    if missing_columns:
-        missing_list = ", ".join(sorted(missing_columns))
-        raise ValueError(f"CSV is missing required columns: {missing_list}")
-
-    cleaned = frame.copy()
-    cleaned["ticker"] = cleaned["ticker"].fillna("").astype(str).str.strip()
-    cleaned["company_name"] = cleaned["company_name"].fillna("").astype(str).str.strip()
-    cleaned["gics_sector"] = cleaned["gics_sector"].fillna("Unknown").astype(str).str.strip()
-    cleaned["gics_sub_industry"] = cleaned["gics_sub_industry"].fillna("Unknown").astype(str).str.strip()
-    return cleaned.sort_values(["gics_sector", "gics_sub_industry", "ticker"]).reset_index(drop=True)
+def get_daily_bars(ticker: str):
+    return load_daily_bars(ticker, DAILY_BARS_DIR)
 
 
 @st.cache_data
-def load_daily_bars(ticker: str) -> pd.DataFrame:
-    parquet_path = DAILY_BARS_DIR / f"{ticker}.parquet"
-    frame = pd.read_parquet(parquet_path)
-    expected_columns = {"date", "open", "high", "low", "close", "volume"}
-    missing_columns = expected_columns.difference(frame.columns)
-    if missing_columns:
-        missing_list = ", ".join(sorted(missing_columns))
-        raise ValueError(f"Daily bars file for {ticker} is missing required columns: {missing_list}")
-
-    cleaned = frame.copy()
-    cleaned["date"] = pd.to_datetime(cleaned["date"], errors="coerce")
-    return cleaned.sort_values("date").reset_index(drop=True)
+def get_performance_frame():
+    return load_performance_data(
+        PERFORMANCE_FRAME_PATH,
+        columns=["market_cap", "log_return_ytd"],
+    )
 
 
 @st.cache_data
-def load_performance_data(parquet_path: str) -> pd.DataFrame:
-    frame = pd.read_parquet(parquet_path)
-    missing_columns = PERFORMANCE_REQUIRED_COLUMNS.difference(frame.columns)
-    if missing_columns:
-        missing_list = ", ".join(sorted(missing_columns))
-        raise ValueError(f"Performance frame is missing required columns: {missing_list}")
-
-    cleaned = frame.loc[:, ["ticker", "market_cap", "log_return_ytd"]].copy()
-    cleaned["ticker"] = cleaned["ticker"].fillna("").astype(str).str.strip()
-    return cleaned.drop_duplicates(subset=["ticker"])
-
-
-@st.cache_data
-def load_volatility_data(parquet_path: str) -> pd.DataFrame:
-    frame = pd.read_parquet(parquet_path)
-    missing_columns = VOLATILITY_REQUIRED_COLUMNS.difference(frame.columns)
-    if missing_columns:
-        missing_list = ", ".join(sorted(missing_columns))
-        raise ValueError(f"Volatility frame is missing required columns: {missing_list}")
-
-    cleaned = frame.loc[:, ["ticker", "realized_vol_6m"]].copy()
-    cleaned["ticker"] = cleaned["ticker"].fillna("").astype(str).str.strip()
-    return cleaned.drop_duplicates(subset=["ticker"])
+def get_volatility_frame():
+    return load_volatility_data(
+        VOLATILITY_FRAME_PATH,
+        columns=["realized_vol_6m"],
+    )
 
 
 def build_candlestick_chart(prices: pd.DataFrame) -> alt.Chart:
@@ -155,35 +118,6 @@ def build_candlestick_chart(prices: pd.DataFrame) -> alt.Chart:
     )
 
     return (wick + candle).properties(height=320).interactive()
-
-
-def filter_prices_by_window(prices: pd.DataFrame, selected_window: str) -> pd.DataFrame:
-    window_size = TIME_WINDOW_OPTIONS[selected_window]
-    if window_size is None:
-        return prices.copy()
-    return prices.tail(window_size).reset_index(drop=True)
-
-
-def format_market_cap_billions(value: float) -> str:
-    if pd.isna(value):
-        return ""
-    billions = float(value) / 1_000_000_000
-    return f"${billions:,.2f}b"
-
-
-def format_log_return_as_percent(value: float) -> str:
-    if pd.isna(value):
-        return ""
-    simple_return = math.exp(float(value)) - 1
-    return f"{simple_return * 100:,.1f}%"
-
-
-def format_percent(value: float) -> str:
-    if pd.isna(value):
-        return ""
-    return f"{float(value) * 100:,.1f}%"
-
-
 def sync_graph_filters_from_lookup(universe_lookup: dict[str, dict[str, str]]) -> None:
     raw_value = st.session_state.get("_graphs_ticker_lookup", "")
     lookup_ticker = raw_value.strip().upper()
@@ -227,7 +161,7 @@ st.markdown(
 )
 
 try:
-    universe = load_universe_data(str(UNIVERSE_PATH))
+    universe = get_universe()
 except FileNotFoundError:
     st.error(f"Could not find the universe file at `{UNIVERSE_PATH}`.")
     st.stop()
@@ -239,8 +173,8 @@ except Exception as exc:
     st.stop()
 
 try:
-    performance_frame = load_performance_data(str(PERFORMANCE_FRAME_PATH))
-    volatility_frame = load_volatility_data(str(VOLATILITY_FRAME_PATH))
+    performance_frame = get_performance_frame()
+    volatility_frame = get_volatility_frame()
 except FileNotFoundError as exc:
     st.error(f"Missing input file: {exc.filename}")
     st.stop()
@@ -251,12 +185,7 @@ except Exception as exc:
     st.error(f"Failed to load metric frames: {exc}")
     st.stop()
 
-universe_lookup = (
-    universe.loc[:, ["ticker", "company_name", "gics_sector", "gics_sub_industry"]]
-    .drop_duplicates(subset=["ticker"])
-    .set_index("ticker")
-    .to_dict(orient="index")
-)
+universe_lookup = build_universe_lookup(universe)
 
 filter_row_1_col_0, filter_row_1_col_1, filter_row_1_col_2 = st.columns([0.9, 1.15, 1.95])
 
@@ -283,7 +212,7 @@ with filter_row_1_col_1:
         widget_key="_graphs_sector",
     )
 
-sector_universe = universe.loc[universe["gics_sector"] == selected_sector].copy()
+sector_universe = filter_universe(universe, selected_sector)
 available_sub_industries = sorted(sector_universe["gics_sub_industry"].unique().tolist())
 with filter_row_1_col_2:
     selected_sub_industry = render_persistent_selectbox(
@@ -293,9 +222,7 @@ with filter_row_1_col_2:
         widget_key="_graphs_sub_industry",
     )
 
-sub_industry_universe = sector_universe.loc[
-    sector_universe["gics_sub_industry"] == selected_sub_industry
-].copy()
+sub_industry_universe = filter_universe(universe, selected_sector, selected_sub_industry)
 sub_industry_universe = sub_industry_universe.sort_values(["ticker", "company_name"]).reset_index(drop=True)
 ticker_options = sub_industry_universe["ticker"].tolist()
 company_lookup = dict(zip(sub_industry_universe["ticker"], sub_industry_universe["company_name"]))
@@ -322,7 +249,7 @@ with filter_row_2_col_2:
     )
 
 try:
-    prices = load_daily_bars(selected_ticker)
+    prices = get_daily_bars(selected_ticker)
 except FileNotFoundError:
     st.error(f"Could not find a daily bars parquet file for `{selected_ticker}` in `{DAILY_BARS_DIR}`.")
     st.stop()

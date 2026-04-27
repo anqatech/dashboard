@@ -1,100 +1,34 @@
-from pathlib import Path
-import math
-
-import pandas as pd
 import streamlit as st
 
+from dashboard_core.analytics import build_stock_screener_table
+from dashboard_core.data import filter_universe, load_performance_data, load_status_data, load_universe_data
+from dashboard_core.paths import PERFORMANCE_FRAME_PATH, STATUS_FRAME_PATH, UNIVERSE_PATH
 from ui_state import render_persistent_selectbox
 
-
-DEFAULT_UNIVERSE_PATH = Path("/Users/jalalelhazzat/Documents/Codex-Projects/jnbooks/data/sp500/tickers_enriched.csv")
-STATUS_FRAME_PATH = Path("/Users/jalalelhazzat/Documents/Codex-Projects/jnbooks/data/frames/daily-bars-database-status-with-market-cap.parquet")
-PERFORMANCE_FRAME_PATH = Path("/Users/jalalelhazzat/Documents/Codex-Projects/jnbooks/data/frames/daily-bars-performance-metrics.parquet")
-UNIVERSE_REQUIRED_COLUMNS = {
-    "ticker",
-    "company_name",
-    "gics_sector",
-    "gics_sub_industry",
-}
-STATUS_REQUIRED_COLUMNS = {"ticker", "market_cap", "start", "end"}
-PERFORMANCE_REQUIRED_COLUMNS = {
-    "ticker",
-    "latest_close",
-    "log_return_1d",
-    "log_return_1w",
-    "log_return_1m",
-    "log_return_ytd",
-    "log_return_1y",
-    "log_return_3y",
-}
+@st.cache_data
+def get_universe():
+    return load_universe_data(UNIVERSE_PATH)
 
 
 @st.cache_data
-def load_universe_data(csv_path: str) -> pd.DataFrame:
-    frame = pd.read_csv(csv_path)
-    missing_columns = UNIVERSE_REQUIRED_COLUMNS.difference(frame.columns)
-    if missing_columns:
-        missing_list = ", ".join(sorted(missing_columns))
-        raise ValueError(f"CSV is missing required columns: {missing_list}")
-
-    cleaned = frame.copy()
-    cleaned["ticker"] = cleaned["ticker"].fillna("").astype(str).str.strip()
-    cleaned["company_name"] = cleaned["company_name"].fillna("").astype(str).str.strip()
-    cleaned["gics_sector"] = cleaned["gics_sector"].fillna("Unknown").astype(str).str.strip()
-    cleaned["gics_sub_industry"] = cleaned["gics_sub_industry"].fillna("Unknown").astype(str).str.strip()
-    return cleaned
+def get_status_frame():
+    return load_status_data(STATUS_FRAME_PATH, columns=["market_cap", "start", "end"])
 
 
 @st.cache_data
-def load_status_data(parquet_path: str) -> pd.DataFrame:
-    frame = pd.read_parquet(parquet_path)
-    missing_columns = STATUS_REQUIRED_COLUMNS.difference(frame.columns)
-    if missing_columns:
-        missing_list = ", ".join(sorted(missing_columns))
-        raise ValueError(f"Status parquet is missing required columns: {missing_list}")
-
-    cleaned = frame.loc[:, ["ticker", "market_cap", "start", "end"]].copy()
-    cleaned["ticker"] = cleaned["ticker"].fillna("").astype(str).str.strip()
-    cleaned["start"] = pd.to_datetime(cleaned["start"], errors="coerce")
-    cleaned["end"] = pd.to_datetime(cleaned["end"], errors="coerce")
-    return cleaned.drop_duplicates(subset=["ticker"])
-
-
-@st.cache_data
-def load_performance_data(parquet_path: str) -> pd.DataFrame:
-    frame = pd.read_parquet(parquet_path)
-    missing_columns = PERFORMANCE_REQUIRED_COLUMNS.difference(frame.columns)
-    if missing_columns:
-        missing_list = ", ".join(sorted(missing_columns))
-        raise ValueError(f"Performance parquet is missing required columns: {missing_list}")
-
-    selected_columns = [
-        "ticker",
-        "latest_close",
-        "log_return_1d",
-        "log_return_1w",
-        "log_return_1m",
-        "log_return_ytd",
-        "log_return_1y",
-        "log_return_3y",
-    ]
-    cleaned = frame.loc[:, selected_columns].copy()
-    cleaned["ticker"] = cleaned["ticker"].fillna("").astype(str).str.strip()
-    return cleaned.drop_duplicates(subset=["ticker"])
-
-
-def format_market_cap_billions(value: float) -> str:
-    if pd.isna(value):
-        return ""
-    billions = float(value) / 1_000_000_000
-    return f"${billions:,.2f}b"
-
-
-def format_log_return_as_percent(value: float) -> str:
-    if pd.isna(value):
-        return ""
-    simple_return = math.exp(float(value)) - 1
-    return f"{simple_return * 100:,.1f}%"
+def get_performance_frame():
+    return load_performance_data(
+        PERFORMANCE_FRAME_PATH,
+        columns=[
+            "latest_close",
+            "log_return_1d",
+            "log_return_1w",
+            "log_return_1m",
+            "log_return_ytd",
+            "log_return_1y",
+            "log_return_3y",
+        ],
+    )
 
 
 st.set_page_config(page_title="Stock Screener", layout="wide")
@@ -103,9 +37,9 @@ st.title("Stock Screener")
 st.caption("Filter the universe by GICS sector and sub-industry.")
 
 try:
-    universe = load_universe_data(str(DEFAULT_UNIVERSE_PATH))
-    status_frame = load_status_data(str(STATUS_FRAME_PATH))
-    performance_frame = load_performance_data(str(PERFORMANCE_FRAME_PATH))
+    universe = get_universe()
+    status_frame = get_status_frame()
+    performance_frame = get_performance_frame()
 except FileNotFoundError as exc:
     st.error(f"Missing input file: {exc.filename}")
     st.stop()
@@ -127,7 +61,7 @@ with filter_col_1:
         widget_key="_stock_screener_sector",
     )
 
-sector_universe = universe.loc[universe["gics_sector"] == selected_sector].copy()
+sector_universe = filter_universe(universe, selected_sector)
 available_sub_industries = ["All"] + sorted(sector_universe["gics_sub_industry"].unique().tolist())
 
 with filter_col_2:
@@ -139,27 +73,11 @@ with filter_col_2:
         default="All",
     )
 
-if selected_sub_industry == "All":
-    filtered_stocks = sector_universe.copy()
-else:
-    filtered_stocks = sector_universe.loc[
-        sector_universe["gics_sub_industry"] == selected_sub_industry
-    ].copy()
-filtered_stocks = filtered_stocks.merge(status_frame, on="ticker", how="left")
-filtered_stocks = filtered_stocks.merge(performance_frame, on="ticker", how="left")
-filtered_stocks["market_cap_display"] = filtered_stocks["market_cap"].apply(format_market_cap_billions)
-filtered_stocks["latest_price_display"] = filtered_stocks["latest_close"]
-filtered_stocks["1D"] = filtered_stocks["log_return_1d"].apply(format_log_return_as_percent)
-filtered_stocks["1W"] = filtered_stocks["log_return_1w"].apply(format_log_return_as_percent)
-filtered_stocks["1M"] = filtered_stocks["log_return_1m"].apply(format_log_return_as_percent)
-filtered_stocks["YTD"] = filtered_stocks["log_return_ytd"].apply(format_log_return_as_percent)
-filtered_stocks["1Y"] = filtered_stocks["log_return_1y"].apply(format_log_return_as_percent)
-filtered_stocks["3Y"] = filtered_stocks["log_return_3y"].apply(format_log_return_as_percent)
-filtered_stocks = filtered_stocks.sort_values(
-    ["market_cap", "ticker", "company_name"],
-    ascending=[False, True, True],
-    na_position="last",
-).reset_index(drop=True)
+filtered_stocks = build_stock_screener_table(
+    filter_universe(universe, selected_sector, selected_sub_industry),
+    status_frame,
+    performance_frame,
+)
 
 st.dataframe(
     filtered_stocks[
