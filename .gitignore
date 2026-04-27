@@ -1,3 +1,44 @@
 .env
+.env.*
+!.env.example
+
+# Virtual environments
 .venv/
+venv/
+env/
+ENV/
+
+# Python caches and build artifacts
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Test and coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.hypothesis/
+
+# Type checker / linter caches
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Local tool state
+.cache/
