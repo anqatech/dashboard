@@ -27,7 +27,7 @@ body {
 }
 
 .app-shell.is-collapsed {
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 54px minmax(0, 1fr);
 }
 
 .app-sidebar {
@@ -97,8 +97,8 @@ body {
 }
 
 .app-shell.is-collapsed .app-sidebar {
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 .app-shell.is-collapsed .side-nav {
