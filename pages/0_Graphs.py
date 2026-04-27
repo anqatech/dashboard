@@ -184,6 +184,26 @@ def format_percent(value: float) -> str:
     return f"{float(value) * 100:,.1f}%"
 
 
+def sync_graph_filters_from_lookup(universe_lookup: dict[str, dict[str, str]]) -> None:
+    raw_value = st.session_state.get("_graphs_ticker_lookup", "")
+    lookup_ticker = raw_value.strip().upper()
+    st.session_state["graphs_ticker_lookup"] = lookup_ticker
+
+    if not lookup_ticker:
+        st.session_state["graphs_ticker_lookup_error"] = ""
+        return
+
+    ticker_details = universe_lookup.get(lookup_ticker)
+    if ticker_details is None:
+        st.session_state["graphs_ticker_lookup_error"] = f"Ticker `{lookup_ticker}` was not found in the universe."
+        return
+
+    st.session_state["graphs_ticker_lookup_error"] = ""
+    st.session_state["graphs_sector"] = ticker_details["gics_sector"]
+    st.session_state["graphs_sub_industry"] = ticker_details["gics_sub_industry"]
+    st.session_state["graphs_ticker"] = lookup_ticker
+
+
 st.set_page_config(page_title="Graphs", layout="wide")
 st.markdown(
     """
@@ -231,10 +251,31 @@ except Exception as exc:
     st.error(f"Failed to load metric frames: {exc}")
     st.stop()
 
-filter_col_1, filter_col_2, filter_col_3, filter_col_4 = st.columns([1.1, 1.3, 1.8, 0.8])
+universe_lookup = (
+    universe.loc[:, ["ticker", "company_name", "gics_sector", "gics_sub_industry"]]
+    .drop_duplicates(subset=["ticker"])
+    .set_index("ticker")
+    .to_dict(orient="index")
+)
+
+filter_row_1_col_0, filter_row_1_col_1, filter_row_1_col_2 = st.columns([0.9, 1.15, 1.95])
+
+with filter_row_1_col_0:
+    st.text_input(
+        "Ticker lookup",
+        key="_graphs_ticker_lookup",
+        value=st.session_state.get("graphs_ticker_lookup", ""),
+        placeholder="Enter a ticker like AAPL",
+        on_change=sync_graph_filters_from_lookup,
+        args=(universe_lookup,),
+    )
+
+lookup_error = st.session_state.get("graphs_ticker_lookup_error", "")
+if lookup_error:
+    st.error(lookup_error)
 
 available_sectors = sorted(universe["gics_sector"].unique().tolist())
-with filter_col_1:
+with filter_row_1_col_1:
     selected_sector = render_persistent_selectbox(
         "Sector",
         available_sectors,
@@ -244,7 +285,7 @@ with filter_col_1:
 
 sector_universe = universe.loc[universe["gics_sector"] == selected_sector].copy()
 available_sub_industries = sorted(sector_universe["gics_sub_industry"].unique().tolist())
-with filter_col_2:
+with filter_row_1_col_2:
     selected_sub_industry = render_persistent_selectbox(
         "Sub-industry",
         available_sub_industries,
@@ -259,7 +300,9 @@ sub_industry_universe = sub_industry_universe.sort_values(["ticker", "company_na
 ticker_options = sub_industry_universe["ticker"].tolist()
 company_lookup = dict(zip(sub_industry_universe["ticker"], sub_industry_universe["company_name"]))
 
-with filter_col_3:
+filter_row_2_col_1, filter_row_2_col_2 = st.columns([2.6, 0.7])
+
+with filter_row_2_col_1:
     selected_ticker = render_persistent_selectbox(
         "Ticker",
         ticker_options,
@@ -268,7 +311,7 @@ with filter_col_3:
         format_func=lambda ticker: f"{ticker} - {company_lookup.get(ticker, '')}",
     )
 
-with filter_col_4:
+with filter_row_2_col_2:
     window_options = list(TIME_WINDOW_OPTIONS.keys())
     selected_window = render_persistent_selectbox(
         "Window",
@@ -319,6 +362,7 @@ metric_col_4.metric("6M realized vol", format_percent(realized_vol_6m))
 metric_col_5.metric("Market cap", format_market_cap_billions(market_cap))
 
 company_name = company_lookup.get(selected_ticker, "")
+st.caption(f"{selected_sector} > {selected_sub_industry}")
 chart_heading = f"{selected_ticker} closing prices"
 if company_name:
     chart_heading = f"{chart_heading} - {company_name}"
