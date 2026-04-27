@@ -22,13 +22,19 @@ conda create -n stock-dashboard python=3.12
 conda activate stock-dashboard
 ```
 
-2. Install the project and its dependencies in editable mode:
+2. Install the project and its runtime dependencies in editable mode:
 
 ```bash
 pip install -e .
 ```
 
-3. If you are experimenting with Massive.com API calls in notebooks or supporting scripts, keep your API key in `.env`:
+3. If you want to run the test suite, install the test extra too:
+
+```bash
+pip install -e ".[dev]"
+```
+
+4. If you are experimenting with Massive.com API calls in notebooks or supporting scripts, keep your API key in `.env`:
 
 ```bash
 MASSIVE_API_KEY=your_api_key_here
@@ -53,7 +59,13 @@ http://127.0.0.1:8050
 Run the lightweight test suite with:
 
 ```bash
-python -m unittest discover tests
+pytest
+```
+
+If you want a coverage report:
+
+```bash
+pytest --cov=dashboard_core --cov=dash_app --cov-report=term-missing
 ```
 
 ## Notes
